@@ -5,10 +5,10 @@ EasyGson is a wrapper for Gson that allows near-native, pure JSON handling for J
 Java can work against this architecture by requiring you to transform your JSON into a Java domain model. Both Gson and Jackson provide excellent ways to automatically map your JSON to a Java domain model and vice versa. This is a fine way to work. However, let us suppose you do not want this. You want JSON-all-the-way. You may have a problem in that case.
 
 The aim of EasyGson is to help you out if you want to process pure JSON, without transforming into a Java domain model. Design goals:
-1. power -- you know what you are doing and you don't need Java to protect you
-2. fluency -- use a fluent interface, just like you would in JavaScript (understand, though, it will never be as sweet)
-3. ease of use -- must be extremely simple to use
-4. giant's shoulders -- Gson powers EasyGson, EasyGson just makes it easier to use
+* power -- you know what you are doing and you don't need Java to protect you
+* fluency -- use a fluent interface, just like you would in JavaScript (understand, though, it will never be as sweet)
+* ease of use -- must be extremely simple to use
+* giant's shoulders -- Gson powers EasyGson, EasyGson just makes it easier to use
 
 In order to use EasyGson (and therefore Gson) in your project, simply add the following dependency:
 
@@ -25,18 +25,18 @@ Getting Started
 Let's assume you have the following JSON document:
 ```json
 {
-    chapters : [
+    "chapters" : [
         {
-            title : "Chapter I",
-            paragraphs : [
+            "title" : "Chapter I",
+            "paragraphs" : [
                 "Lorem Ipsum and so forth...",
                 "... in the middle...",
                 "... final text"
             ]
         },
         {
-            title : "Chapter I",
-            paragraphs : [
+            "title" : "Chapter I",
+            "paragraphs" : [
                 "Epilogue..."
             ]
         }
@@ -46,7 +46,10 @@ Let's assume you have the following JSON document:
 
 You can instantiate a JsonEntity with this JSON document in the following way:
 ```java
-JsonEntity json = new JsonEntity("{"chapters":[{"title":"Chapter I","paragraphs":["Lorem Ipsum and so forth...","... in the middle...","... final text"]},{"title":"Chapter II","paragraphs":["Lorem Ipsum and so forth..."]}]}");
+JsonEntity json = new JsonEntity(
+    "{\"chapters\":[{\"title\":\"Chapter I\",\"paragraphs\":[\"Lorem Ipsum and so forth...\","+
+    "\"... in the middle...\",\"... final text\"]},{\"title\":\"Chapter II\",\"paragraphs\":"+
+    "[\"Epilogue...\"]}]}");
 ```
 
 If you want to loop the double array and print the values, this would be the way to do it:

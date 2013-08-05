@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 import static org.easygson.JsonEntity.emptyArray;
 import static org.easygson.JsonEntity.emptyObject;
 
@@ -20,9 +21,9 @@ public class JsonEntityTest {
     @Test
     public void parseArray() {
         JsonEntity json = new JsonEntity("[\"alpha\",\"beta\",\"gamma\"]");
-        assertEquals("alpha", json.get(0).asString());
-        assertEquals("beta", json.get(1).asString());
-        assertEquals("gamma", json.get(2).asString());
+        assertEquals("alpha", json.asString(0));
+        assertEquals("beta", json.asString(1));
+        assertEquals("gamma", json.asString(2));
     }
 
     @Test
@@ -31,9 +32,9 @@ public class JsonEntityTest {
                 .create("alpha")
                 .create("beta")
                 .create("gamma");
-        assertEquals("alpha", array.get(0).asString());
-        assertEquals("beta", array.get(1).asString());
-        assertEquals("gamma", array.get(2).asString());
+        assertEquals("alpha", array.asString(0));
+        assertEquals("beta", array.asString(1));
+        assertEquals("gamma", array.asString(2));
     }
 
     @Test

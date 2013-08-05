@@ -126,7 +126,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
     }
 
     private JsonEntity verifyArray(JsonEntity array) {
-        if (!array.isObject()) {
+        if (!array.isArray()) {
             throw new JsonEntityException(array, null, "is not an array");
         }
         return array;

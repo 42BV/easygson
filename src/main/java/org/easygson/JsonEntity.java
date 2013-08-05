@@ -10,18 +10,18 @@ import java.util.List;
 
 /**
  * <p>EasyGson is a wrapper for Gson, the excellent Google Java Json library. The added value of EasyGson
- * is that it will allow you to handle the Json is a more "native" manner (native to Json, not to Java).
+ * is that it will allow you to handle the Json in a more "native" manner (native to Json, not to Java).
  * This library pays off especially if you do not intend to transform to and from a Java domain model, but
  * instead chose to operate directly on the Json model itself.</p>
  *
  * <p></p>Every node (array, object or primitive) in a JSON tree is a JsonEntity. JsonEntity offers all
- * the methods available to every node type, though it checks whether the call can be made. If not
+ * the methods available to every node type, though it checks whether the call can be made. If not,
  * an exception is thrown, with details on the branch of the JSON tree where the failure took place.</p>
  *
  * <p>Some JSON terminology:</p>
  * <ul>
  *     <li>object; a container of JSON elements, each callable through a property name</li>
- *     <li>array; a sequence of other JSON elements</li>
+ *     <li>array; a sequence of JSON elements</li>
  *     <li>primitive; a leaf within the JSON tree, contains the actual value</li>
  * </ul>
  *

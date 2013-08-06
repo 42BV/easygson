@@ -47,9 +47,9 @@ Let's assume you have the following JSON document:
 You can instantiate a JsonEntity with this JSON document in the following way:
 ```java
 JsonEntity json = new JsonEntity(
-    "{\"chapters\":[{\"title\":\"Chapter I\",\"paragraphs\":[\"Lorem Ipsum and so forth...\","+
-    "\"... in the middle...\",\"... final text\"]},{\"title\":\"Chapter II\",\"paragraphs\":"+
-    "[\"Epilogue...\"]}]}");
+    "{\"chapters\":[{\"title\":\"Chapter I\",\"paragraphs\":[\"Lorem Ipsum"+
+    " and so forth...\",\"... in the middle...\",\"... final text\"]},"+
+    "{\"title\":\"Chapter II\",\"paragraphs\":[\"Epilogue...\"]}]}");
 ```
 
 If you want to loop the double array and print the values, this would be the way to do it:
@@ -97,7 +97,8 @@ Epilogue...
 
 If you somehow call the wrong method on a JSON element, an exception will show you the way:
 ```java
-json.get("chapters").get(1).get("paragraphs").get("property-that-does-not-exist-on-an-array");
+json.get("chapters").get(1).get("paragraphs").get(
+    "property-that-does-not-exist-on-an-array");
 ```
 
 ```text

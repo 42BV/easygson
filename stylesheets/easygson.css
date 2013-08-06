@@ -29,3 +29,8 @@ hr {
     border-bottom:1px dashed #2879D0;
     margin-bottom: 10px;
 }
+
+b {
+    font-weight: bold;
+    font-style: italic;
+}

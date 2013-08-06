@@ -21,7 +21,7 @@
     <header>
       <div class="inner">
         <h1>EasyGson</h1>
-        <h2>EasyGson is a wrapper for Gson that allows near-native, pure JSON handling for Java apps</h2>
+        <h2>Java wrapper for Gson that allows pure, near-native Json handling</h2>
         <a href="https://github.com/42BV/easygson" class="button"><small>View project on</small>GitHub</a>
       </div>
     </header>
@@ -30,17 +30,17 @@
       <div class="inner clearfix">
         <section id="main-content">
 
-<p>EasyGson is a wrapper for <a href="http://code.google.com/p/google-gson/">Gson</a> that allows near-native, pure JSON handling for Java applications. With JSON-oriented databases, like MongoDB, and heavy usage of JSON to feed Javascript-powered frontends, JSON-all-the-way architectures becomes ever more popular.</p>
+<p>With Json-oriented databases, like <a href="http://www.mongodb.org/">MongoDB</a>, and heavy usage of Json to feed Javascript-powered frontends, Json-all-the-way architectures becomes ever more popular.</p>
 
-<p>Java can work against this architecture by requiring you to transform your JSON into a Java domain model. Both Gson and Jackson provide excellent ways to automatically map your JSON to a Java domain model and vice versa. This is a fine way to work. However, let us suppose you do not want this. You want JSON-all-the-way. You may have a problem in that case.</p>
+<p>Java can work against this architecture, because <b><a href="http://www.jillesvangurp.com/2011/04/02/on-java-json-and-complexity/">there is no native Json handling in Java</a></b>. The Java convention is that you transform your Json into a Java domain model. Both <a href="http://code.google.com/p/google-gson/">Gson</a> and <a href="http://wiki.fasterxml.com/JacksonHome">Jackson</a> provide excellent ways to automatically map your Json to a Java domain model and vice versa. This is a fine way to work. However, let us suppose you do not want this. You want Json-all-the-way. You may have a problem in that case.</p>
 
-<p>The aim of EasyGson is to help you out if you want to process pure JSON, without transforming into a Java domain model. Design goals:</p>
+<p>The aim of EasyGson is to help you out if you want to process pure Json, without transforming into a Java domain model. Design goals:</p>
 
 <ul>
 <li>power &mdash; you know what you are doing and you don't need Java to protect you</li>
 <li>fluency &mdash; use a fluent interface, just like you would in JavaScript (understand, though, it will never be as sweet)</li>
 <li>ease of use &mdash; must be extremely simple to use</li>
-<li>giant's shoulders &mdash; Gson powers EasyGson, EasyGson just makes it easier to use</li>
+<li>giant's shoulders &mdash; <a href="http://code.google.com/p/google-gson/">Gson</a> powers EasyGson, EasyGson just makes it easier to use</li>
 </ul><p>In order to use EasyGson (and therefore Gson) in your project, simply add the following dependency:</p>
 
 <div class="highlight"><pre><span class="nt">&lt;dependency&gt;</span>
@@ -53,7 +53,7 @@
 <h2>
 <a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting Started</h2>
 
-<p>Let's assume you have the following JSON document:</p>
+<p>Let's assume you have the following Json document:</p>
 
 <div class="highlight"><pre><span class="p">{</span>
     <span class="nt">"chapters"</span> <span class="p">:</span> <span class="p">[</span>
@@ -75,7 +75,7 @@
 <span class="p">}</span>
 </pre></div>
 
-<p>You can instantiate a JsonEntity with this JSON document in the following way:</p>
+<p>You can instantiate a JsonEntity with this Json document in the following way:</p>
 <div class="highlight"><pre><span class="n">JsonEntity</span> <span class="n">json</span> <span class="o">=</span> <span class="k">new</span> <span class="n">JsonEntity</span><span class="o">(</span>
     <span class="s">"{\"chapters\":[{\"title\":\"Chapter I\",\"paragraphs\":[\"Lorem Ipsum"</span><span class="o">+</span>
     <span class="s">" and so forth...\",\"... in the middle...\",\"... final text\"]},"</span><span class="o">+</span>
@@ -92,7 +92,7 @@
 <span class="o">}</span>
 </pre></div>
 
-<p>A JSON object can be built from scratch using the fluent API:</p>
+<p>A Json object can be built from scratch using the fluent API:</p>
 
 <div class="highlight"><pre><span class="n">JsonEntity</span> <span class="n">json</span> <span class="o">=</span> <span class="n">emptyObject</span><span class="o">()</span>
     <span class="o">.</span><span class="na">createArray</span><span class="o">(</span><span class="s">"chapters"</span><span class="o">)</span>
@@ -125,7 +125,7 @@
 <div class="highlight"><pre>Epilogue...
 </pre></div>
 
-<p>If you somehow call the wrong method on a JSON element, an exception will show you the way:</p>
+<p>If you somehow call the wrong method on a Json element, an exception will show you the way:</p>
 
 <div class="highlight"><pre><span class="n">json</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">"chapters"</span><span class="o">).</span><span class="na">get</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="na">get</span><span class="o">(</span><span class="s">"paragraphs"</span><span class="o">).</span><span class="na">get</span><span class="o">(</span>
     <span class="s">"property-that-does-not-exist-on-an-array"</span><span class="o">);</span>

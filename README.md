@@ -1,14 +1,15 @@
 EasyGson
 ========
-EasyGson is a wrapper for Gson that allows near-native, pure JSON handling for Java applications. With JSON-oriented databases, like MongoDB, and heavy usage of JSON to feed Javascript-powered frontends, JSON-all-the-way architectures becomes ever more popular.
+With Json-oriented databases, like MongoDB, and heavy usage of Json to feed Javascript-powered frontends, Json-all-the-way architectures becomes ever more popular.
 
-Java can work against this architecture by requiring you to transform your JSON into a Java domain model. Both Gson and Jackson provide excellent ways to automatically map your JSON to a Java domain model and vice versa. This is a fine way to work. However, let us suppose you do not want this. You want JSON-all-the-way. You may have a problem in that case.
+Java can work against this architecture, because there is no native Json handling in Java. The Java convention is that you transform your Json into a Java domain model. Both Gson and Jackson provide excellent ways to automatically map your Json to a Java domain model and vice versa. This is a fine way to work. However, let us suppose you do not want this. You want Json-all-the-way. You may have a problem in that case.
 
-The aim of EasyGson is to help you out if you want to process pure JSON, without transforming into a Java domain model. Design goals:
-* power -- you know what you are doing and you don't need Java to protect you
-* fluency -- use a fluent interface, just like you would in JavaScript (understand, though, it will never be as sweet)
-* ease of use -- must be extremely simple to use
-* giant's shoulders -- Gson powers EasyGson, EasyGson just makes it easier to use
+The aim of EasyGson is to help you out if you want to process pure Json, without transforming into a Java domain model. Design goals:
+
+* power — you know what you are doing and you don't need Java to protect you
+* fluency — use a fluent interface, just like you would in JavaScript (understand, though, it will never be as sweet)
+* ease of use — must be extremely simple to use
+* giant's shoulders — Gson powers EasyGson, EasyGson just makes it easier to use
 
 In order to use EasyGson (and therefore Gson) in your project, simply add the following dependency:
 

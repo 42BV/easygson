@@ -307,6 +307,20 @@ public class JsonEntityTest {
     }
 
     @Test
+    public void changeObject() {
+        JsonEntity root = emptyObject()
+            .createArray("array")
+                .createObject()
+                    .create("x", 13)
+                    .parent()
+                .parent();
+        JsonEntity object = emptyObject()
+            .create("x", 29);
+        root.get("array").create(0, object);
+        assertEquals(29, root.get("array").get(0).asInt("x"));
+    }
+
+    @Test
     public void removeFromObject() {
         JsonEntity object = emptyObject();
         object.create("prop", "alpha");

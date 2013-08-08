@@ -43,8 +43,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
     /** the current JSON element */
     private JsonElement json;
 
-    /** the name/index of the current element within the parent. Used for exception reporting */
-    private String property;
+    /** the name/index of the current element within the parent */
+    private String propertyName;
+
+    /** the index of the current element within the parent */
+    private int propertyIndex = -1;
 
     /**
      * Constructor that takes a JSON string representation and transforms it into a JsonEntity
@@ -59,13 +62,14 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @param json Gson JsonElement
      */
     public JsonEntity(JsonElement json) {
-        this(null, null, json);
+        this(null, null, -1, json);
     }
 
-    private JsonEntity(JsonEntity parent, String property, JsonElement json) {
+    private JsonEntity(JsonEntity parent, String propertyName, int propertyIndex, JsonElement json) {
         this.parent = parent;
         this.json = json == null ? JsonNull.INSTANCE : json;
-        this.property = property;
+        this.propertyName = propertyName;
+        this.propertyIndex = propertyIndex;
     }
 
     /**
@@ -490,6 +494,16 @@ public class JsonEntity implements Iterable<JsonEntity> {
             currentIndex++;
         }
         json = targetArray;
+        // Gson does not support the modification of arrays (ie, deletes, changes, only adds) and therefore the
+        // entire JsonArray will have to be replaced. Consequence is that the parent nodes will have to be
+        // notified of the new instance.
+        if (parent != null) {
+            if (propertyIndex > -1) { // Update the parent array, possibly recursively
+                parent.rebuildArray(propertyIndex, json);
+            } else { // Update the parent object
+                parent.create(propertyName, json);
+            }
+        }
         return wrap(replaceIndex, replaceElement);
     }
 
@@ -845,7 +859,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return property of the element within the parent
      */
     public String name() {
-        return property;
+        return propertyName == null ? property(propertyIndex) : propertyName;
     }
 
     private JsonEntity linkToObject(String property, JsonElement jsonEntity) {
@@ -859,11 +873,15 @@ public class JsonEntity implements Iterable<JsonEntity> {
     }
 
     private JsonEntity wrap(String property, JsonElement jsonElement) {
-        return new JsonEntity(this, property, jsonElement);
+        return wrap(property, -1, jsonElement);
     }
 
     private JsonEntity wrap(int index, JsonElement jsonElement) {
-        return wrap(property(index), jsonElement);
+        return wrap(null, index, jsonElement);
+    }
+
+    private JsonEntity wrap(String propertyName, int propertyIndex, JsonElement jsonElement) {
+        return new JsonEntity(this, propertyName, propertyIndex, jsonElement);
     }
 
     /**

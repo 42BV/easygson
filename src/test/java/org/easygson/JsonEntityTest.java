@@ -1,14 +1,20 @@
 package org.easygson;
 
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.assertTrue;
+import static org.easygson.JsonEntity.emptyArray;
+import static org.easygson.JsonEntity.emptyObject;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Iterator;
 
-import static junit.framework.Assert.*;
-import static junit.framework.Assert.assertEquals;
-import static org.easygson.JsonEntity.emptyArray;
-import static org.easygson.JsonEntity.emptyObject;
+import org.junit.Test;
 
 public class JsonEntityTest {
 
@@ -47,11 +53,16 @@ public class JsonEntityTest {
         assertEquals("28", object.get("coordinates").asString("x"));
         assertEquals("14", object.get("coordinates").asString("y"));
     }
+    
+    @Test
+    public void nullSafeAccess() {
+        JsonEntity json = emptyObject();
+        assertNotNull(json.getSafely("unknown"));
+    }
 
     @Test
     public void callingEnsureArrayPropertyTwice() {
-        JsonEntity json = emptyObject()
-                .ensureArray("array").parent();
+        JsonEntity json = emptyObject().ensureArray("array").parent();
         assertSame(json.get("array").raw(), json.ensureArray("array").raw());
     }
 
@@ -115,6 +126,16 @@ public class JsonEntityTest {
             assertEquals("el"+count, arrayElement.asString());
             count++;
         }
+    }
+    
+    @Test
+    public void iterableObject() {
+        JsonEntity json = emptyObject();
+        json.create("test", "success");
+        
+        Iterator<JsonEntity> iterator = json.iterator();
+        assertEquals("success", iterator.next().asString("test"));
+        assertFalse(iterator.hasNext());
     }
 
     @Test(expected = JsonEntityException.class)

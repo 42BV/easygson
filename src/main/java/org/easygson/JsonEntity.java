@@ -1,12 +1,18 @@
 package org.easygson;
 
-import com.google.gson.*;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 /**
  * <p>EasyGson is a wrapper for Gson, the excellent Google Java Json library. The added value of EasyGson
@@ -787,7 +793,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
     }
 
     /**
-     * Returns an element on the basis of a property name. The current element must be an object for this to work
+     * Returns an element on the basis of a property name. The current element must be an object for this to work.
      * @param property property name of the element to return
      * @return element with property name
      */
@@ -797,6 +803,17 @@ public class JsonEntity implements Iterable<JsonEntity> {
         }
         JsonElement element = ((JsonObject)json).get(property);
         return element != null ? wrap(property, element) : null;
+    }
+    
+    /**
+     * Returns an element on the basis of a property name. Whenever the property could not be found, we return
+     * an empty object. The current element must be an object for this to work.
+     * @param property property name of the element to return
+     * @return element with property name
+     */
+    public JsonEntity getSafely(String property) {
+        JsonEntity entity = get(property);
+        return entity != null ? entity : emptyObject();
     }
 
     /**
@@ -908,7 +925,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
     @Override
     public Iterator<JsonEntity> iterator() {
         if (!isArray()) {
-            throw new JsonEntityException(this, null, "is not an array, therefore cannot be used as Iterable");
+            return Collections.singleton(this).iterator();
         }
         JsonArray array = ((JsonArray)json);
         List<JsonEntity> wrappedElements = new ArrayList<JsonEntity>(array.size());

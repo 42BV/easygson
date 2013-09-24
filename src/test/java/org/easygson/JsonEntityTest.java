@@ -12,7 +12,6 @@ import static org.easygson.JsonEntity.emptyObject;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Iterator;
 
 import org.junit.Test;
 
@@ -129,13 +128,14 @@ public class JsonEntityTest {
     }
     
     @Test
-    public void iterableObject() {
-        JsonEntity json = emptyObject();
-        json.create("test", "success");
-        
-        Iterator<JsonEntity> iterator = json.iterator();
-        assertEquals("success", iterator.next().asString("test"));
-        assertFalse(iterator.hasNext());
+    public void iterableNull() {
+        JsonEntity unknown = emptyObject().getSafely("unknown");
+        assertFalse(unknown.iterator().hasNext());
+    }
+    
+    @Test(expected = JsonEntityException.class)
+    public void iterableNonArray() {
+        emptyObject().iterator();
     }
 
     @Test(expected = JsonEntityException.class)

@@ -801,19 +801,19 @@ public class JsonEntity implements Iterable<JsonEntity> {
         if (!isObject()) {
             throw new JsonEntityException(this, null, "is not an object, so the property could not be fetched");
         }
-        JsonElement element = ((JsonObject)json).get(property);
+        JsonElement element = ((JsonObject) json).get(property);
         return element != null ? wrap(property, element) : null;
     }
     
     /**
-     * Returns an element on the basis of a property name. Whenever the property could not be found, we return
+     * Returns an element on the basis of a property name. Whenever the property cannot be found, we return
      * an empty object. The current element must be an object for this to work.
      * @param property property name of the element to return
      * @return element with property name
      */
     public JsonEntity getSafely(String property) {
         JsonEntity entity = get(property);
-        return entity != null ? entity : emptyObject();
+        return entity != null ? entity : new JsonEntity(JsonNull.INSTANCE);
     }
 
     /**
@@ -918,14 +918,17 @@ public class JsonEntity implements Iterable<JsonEntity> {
     }
 
     /**
-     * Returns the children in the current array as an iterator. Note that all children will be wrappen
-     * in a JsonEntity instance.
+     * Returns the children in the current array as an iterator. Note that
+     * all children will be wrapped in a JsonEntity instance.
      * @return iterator with the children of the array
      */
     @Override
     public Iterator<JsonEntity> iterator() {
+    	if (json == JsonNull.INSTANCE) {
+    		return Collections.<JsonEntity> emptySet().iterator();
+    	}
         if (!isArray()) {
-            return Collections.singleton(this).iterator();
+            throw new JsonEntityException(this, null, "is not an array, therefore cannot be iterated over");
         }
         JsonArray array = ((JsonArray)json);
         List<JsonEntity> wrappedElements = new ArrayList<JsonEntity>(array.size());
@@ -939,7 +942,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
 
     /**
      * Copies the current node without the reference to the parent and property.
-     * @return copy of the current node, uncoupled from its parent
+     * @return copy of the current node, un-coupled from its parent
      */
     public JsonEntity detachedCopy() {
         return new JsonEntity(json.toString());

@@ -1,19 +1,15 @@
 package org.easygson;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNotSame;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertSame;
-import static junit.framework.Assert.assertTrue;
-import static org.easygson.JsonEntity.emptyArray;
-import static org.easygson.JsonEntity.emptyObject;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.junit.Test;
+import static junit.framework.Assert.*;
+import static org.easygson.JsonEntity.emptyArray;
+import static org.easygson.JsonEntity.emptyObject;
 
 public class JsonEntityTest {
 
@@ -358,6 +354,35 @@ public class JsonEntityTest {
                 .create(child).parent();
         assertEquals(14, parent.get(0).asInt("x"));
         assertEquals(28, parent.get(0).asInt("y"));
+    }
+
+    @Test
+    public void equals() {
+        JsonEntity a = new JsonEntity("{ a : 10}");
+        JsonEntity b = new JsonEntity("{ a : 10 }");
+        assertTrue(a.equals(b));
+    }
+
+    @Test
+    public void notEquals() {
+        JsonEntity a = new JsonEntity("{ a : 10}");
+        JsonEntity b = new JsonEntity("{ a : 20}");
+        assertFalse(a.equals(b));
+    }
+
+    @SuppressWarnings("EqualsBetweenInconvertibleTypes")
+    @Test
+    public void equalsIncompatibleTypes() {
+        JsonElement gson = new JsonParser().parse("{a:10}");
+        JsonEntity easyGson = new JsonEntity(gson);
+        assertFalse(easyGson.equals(gson));
+    }
+
+    @Test
+    public void checkHashCode() {
+        JsonElement gson = new JsonParser().parse("{a:10}");
+        JsonEntity easyGson = new JsonEntity(gson);
+        assertEquals(gson.hashCode(), easyGson.hashCode());
     }
 
 }

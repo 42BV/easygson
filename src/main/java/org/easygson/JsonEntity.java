@@ -957,4 +957,18 @@ public class JsonEntity implements Iterable<JsonEntity> {
         return raw().toString();
     }
 
+    @Override
+    public int hashCode() {
+        return raw().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof JsonEntity)) {
+            return false;
+        }
+        JsonEntity element = (JsonEntity)obj;
+        return raw().equals(element.raw());
+    }
+
 }

@@ -848,6 +848,27 @@ public class JsonEntity implements Iterable<JsonEntity> {
         return json.isJsonNull();
     }
 
+    /**
+     * Checks whether the array has rows
+     * @return true if the underlying Gson element is a JsonArray and has rows
+     */
+    public boolean isNotEmpty() {
+        return isArray() && arraySize() > 0;
+    }
+
+//    /**
+//     * ...
+//     * @param index
+//     * @return
+//     */
+//    public boolean isNotBlank(JsonEntity value) {
+//        boolean result = false;
+//        if (isNotNull()) {
+//            result = StringUtils.isNotBlank(value.asString());
+//        }
+//        return result;
+//    }
+
     private String property(int index) {
         return "["+index+"]";
     }

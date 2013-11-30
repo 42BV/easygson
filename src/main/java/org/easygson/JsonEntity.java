@@ -1,18 +1,12 @@
 package org.easygson;
 
+import com.google.gson.JsonElement;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 /**
  * <p>EasyGson is a wrapper for Gson, the excellent Google Java Json library. The added value of EasyGson
@@ -46,8 +40,8 @@ public class JsonEntity implements Iterable<JsonEntity> {
     /** the JSON element that qualifies as the parent of this element. Must be either an array or an object */
     private JsonEntity parent;
 
-    /** the current JSON element */
-    private JsonElement json;
+    /** the wrapped Gson element */
+    private WrappedElement wrappedElement;
 
     /** the name/index of the current element within the parent */
     private String propertyName;
@@ -60,7 +54,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @param jsonString JSON string representation
      */
     public JsonEntity(String jsonString) {
-        this(new JsonParser().parse(jsonString));
+        this(new WrappedElement(jsonString));
     }
 
     /**
@@ -68,12 +62,16 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @param json Gson JsonElement
      */
     public JsonEntity(JsonElement json) {
-        this(null, null, -1, json);
+        this(new WrappedElement(json));
     }
 
-    private JsonEntity(JsonEntity parent, String propertyName, int propertyIndex, JsonElement json) {
+    private JsonEntity(WrappedElement wrappedElement) {
+        this(null, null, -1, wrappedElement);
+    }
+
+    private JsonEntity(JsonEntity parent, String propertyName, int propertyIndex, WrappedElement wrappedElement) {
         this.parent = parent;
-        this.json = json == null ? JsonNull.INSTANCE : json;
+        this.wrappedElement = wrappedElement == null ? WrappedElement.NULL : wrappedElement;
         this.propertyName = propertyName;
         this.propertyIndex = propertyIndex;
     }
@@ -85,7 +83,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the newly created array
      */
     public JsonEntity createArray(String property) {
-        return create(property, new JsonArray());
+        return create(property, WrappedElement.createArray());
     }
 
     /**
@@ -94,7 +92,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the newly created array
      */
     public JsonEntity createArray() {
-        return create(arraySize(), new JsonArray());
+        return create(arraySize(), WrappedElement.createArray());
     }
 
     /**
@@ -104,7 +102,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the newly created array
      */
     public JsonEntity createArray(int index) {
-        return create(index, new JsonArray());
+        return create(index, WrappedElement.createArray());
     }
 
     /**
@@ -118,7 +116,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
     public JsonEntity ensureArray(String property) {
         JsonEntity array = get(property);
         if (array == null) {
-            array = create(property, new JsonArray());
+            array = create(property, WrappedElement.createArray());
         }
         return verifyArray(array);
     }
@@ -132,7 +130,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the already existing or newly created array
      */
     public JsonEntity ensureArray(int index) {
-        return verifyArray(ensure(index, new JsonArray()));
+        return verifyArray(ensure(index, WrappedElement.createArray()));
     }
 
     private JsonEntity verifyArray(JsonEntity array) {
@@ -149,7 +147,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the newly created object
      */
     public JsonEntity createObject(String property) {
-        return create(property, new JsonObject());
+        return create(property, WrappedElement.createObject());
     }
 
     /**
@@ -168,7 +166,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the newly created object
      */
     public JsonEntity createObject(int index) {
-        return create(index, new JsonObject());
+        return create(index, WrappedElement.createObject());
     }
 
     /**
@@ -182,7 +180,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
     public JsonEntity ensureObject(String property) {
         JsonEntity object = get(property);
         if (object == null) {
-            object = create(property, new JsonObject());
+            object = create(property, WrappedElement.createObject());
         }
         return verifyObject(object);
     }
@@ -196,7 +194,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the already existing or newly created object
      */
     public JsonEntity ensureObject(int index) {
-        return verifyObject(ensure(index, new JsonObject()));
+        return verifyObject(ensure(index, WrappedElement.createObject()));
     }
 
     private JsonEntity verifyObject(JsonEntity object) {
@@ -244,6 +242,10 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the newly created JsonEntity (if array/object) or the object (if primitive/null)
      */
     public JsonEntity create(String property, JsonElement jsonEntity) {
+        return create(property, new WrappedElement(jsonEntity));
+    }
+
+    private JsonEntity create(String property, WrappedElement jsonEntity) {
         if (!isObject()) {
             throw new JsonEntityException(this, null, "is not an object, therefore no property can be set on it");
         }
@@ -260,7 +262,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
         return create(arraySize(), jsonEntity);
     }
 
-    private JsonEntity ensure(int index, JsonElement jsonEntity) {
+    private JsonEntity ensure(int index, WrappedElement jsonEntity) {
         return createOrEnsure(index, jsonEntity, false);
     }
 
@@ -272,10 +274,15 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the newly created JsonEntity (if array/object) or the object (if primitive/null)
      */
     public JsonEntity create(int index, JsonElement jsonEntity) {
+        return createOrEnsure(index, jsonEntity == null ? null : new WrappedElement(jsonEntity), true);
+    }
+
+    public JsonEntity create(int index, WrappedElement jsonEntity) {
         return createOrEnsure(index, jsonEntity, true);
     }
 
-    private JsonEntity createOrEnsure(int index, JsonElement jsonEntity, boolean overwrite) {
+
+    private JsonEntity createOrEnsure(int index, WrappedElement jsonEntity, boolean overwrite) {
         JsonEntity arrayElement = getOrCreateAtIndex(index, jsonEntity, overwrite);
         return arrayElement.fluentPlayer() ? arrayElement : this;
     }
@@ -392,20 +399,20 @@ public class JsonEntity implements Iterable<JsonEntity> {
         return create(index, createPrimitiveCharacter(value));
     }
 
-    private JsonElement createPrimitiveBoolean(Boolean value) {
-        return value == null ? JsonNull.INSTANCE : new JsonPrimitive(value);
+    private WrappedElement createPrimitiveBoolean(Boolean value) {
+        return WrappedElement.createPrimitiveBoolean(value);
     }
 
-    private JsonElement createPrimitiveNumber(Number value) {
-        return value == null ? JsonNull.INSTANCE : new JsonPrimitive(value);
+    private WrappedElement createPrimitiveNumber(Number value) {
+        return WrappedElement.createPrimitiveNumber(value);
     }
 
-    private JsonElement createPrimitiveString(String value) {
-        return value == null ? JsonNull.INSTANCE : new JsonPrimitive(value);
+    private WrappedElement createPrimitiveString(String value) {
+        return WrappedElement.createPrimitiveString(value);
     }
 
-    private JsonElement createPrimitiveCharacter(Character value) {
-        return value == null ? JsonNull.INSTANCE : new JsonPrimitive(value);
+    private WrappedElement createPrimitiveCharacter(Character value) {
+        return WrappedElement.createPrimitiveCharacter(value);
     }
 
     /**
@@ -414,7 +421,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the object element in which the element has been nullified
      */
     public JsonEntity nullify(String property) {
-        return create(property, JsonNull.INSTANCE);
+        return create(property, WrappedElement.NULL);
     }
 
     /**
@@ -423,7 +430,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the array element in which the element has been nullified
      */
     public JsonEntity nullify(int index) {
-        return create(index, JsonNull.INSTANCE);
+        return create(index, WrappedElement.NULL);
     }
 
     /**
@@ -432,15 +439,12 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return the object element from which the element has been removed
      */
     public JsonEntity remove(String property) {
-        if (!isObject()) {
-            throw new JsonEntityException(this, null, "is not an object, therefore no property can be removed from it");
-        }
-        ((JsonObject)json).remove(property);
+        wrappedElement.remove(property);
         return this;
     }
 
     /**
-     * Removes the element at index from the array. The array will be collapse, ie elements following the removed
+     * Removes the element at index from the array. The array will be collapsed, ie elements following the removed
      * element will get an index at 1 lower. Note that array collapsing is not supported by Gson and therefore an
      * expensive array rebuild will be executed.
      * @param index position of the element within the array to remove
@@ -460,13 +464,14 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return size of the array
      */
     public int arraySize() {
-        if (!isArray()) {
-            throw new JsonEntityException(this, null, "is not an array, therefore does not have an array size");
+        try {
+            return wrappedElement.arraySize();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
         }
-        return ((JsonArray)json).size();
     }
 
-    private JsonEntity getOrCreateAtIndex(int index, JsonElement jsonElement, boolean overwrite) {
+    private JsonEntity getOrCreateAtIndex(int index, WrappedElement jsonElement, boolean overwrite) {
         if (!isArray()) {
             throw new JsonEntityException(this, null, "is not an array, therefore no index can be called upon it");
         }
@@ -485,49 +490,33 @@ public class JsonEntity implements Iterable<JsonEntity> {
         }
     }
 
-    private JsonEntity rebuildArray(int replaceIndex, JsonElement replaceElement) {
-        JsonArray sourceArray = (JsonArray)json;
-        JsonArray targetArray = new JsonArray();
-        int currentIndex = 0;
-        for (JsonElement sourceArrayElement : sourceArray) {
-            if (replaceIndex == currentIndex) {
-                if (replaceElement != null) {
-                    targetArray.add(replaceElement);
-                }
-            } else {
-                targetArray.add(sourceArrayElement);
-            }
-            currentIndex++;
-        }
-        json = targetArray;
+    private JsonEntity rebuildArray(int replaceIndex, WrappedElement replaceElement) {
+        this.wrappedElement = wrappedElement.rebuildArray(replaceIndex, replaceElement);
+
         // Gson does not support the modification of arrays (ie, deletes, changes, only adds) and therefore the
         // entire JsonArray will have to be replaced. Consequence is that the parent nodes will have to be
         // notified of the new instance.
         if (parent != null) {
             if (propertyIndex > -1) { // Update the parent array, possibly recursively
-                parent.rebuildArray(propertyIndex, json);
+                parent.rebuildArray(propertyIndex, wrappedElement);
             } else { // Update the parent object
-                parent.create(propertyName, json);
+                parent.create(propertyName, wrappedElement);
             }
         }
-        return wrap(replaceIndex, replaceElement);
+        return replaceElement == null ? this : wrap(replaceIndex, replaceElement);
     }
 
     private JsonEntity getAtIndex(int index) {
         if (index >= arraySize()) {
             throw new JsonEntityException(this, null, "index out of bounds: index "+index+" >= "+arraySize()+" length");
         }
-        JsonElement arrayElement = ((JsonArray)json).get(index);
-        if (arrayElement == null) {
-            throw new JsonEntityException(this, null, "array element does not exist");
+        WrappedElement arrayElement = null;
+        try {
+            arrayElement = wrappedElement.getAtIndex(index);
+        } catch (WrappedElementException e) {
+            throw new JsonEntityException(this, null, e.getMessage());
         }
         return wrap(index, arrayElement);
-    }
-
-    private void primitiveCheck() {
-        if (!isPrimitive()) {
-            throw new JsonEntityException(this, null, "is not a primitive");
-        }
     }
 
     /**
@@ -535,8 +524,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return Character value of the current primitive
      */
     public char asCharacter() {
-        primitiveCheck();
-        return json.getAsCharacter();
+        try {
+            return wrappedElement.asCharacter();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -560,8 +552,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return boolean value of the current primitive
      */
     public boolean asBoolean() {
-        primitiveCheck();
-        return json.getAsBoolean();
+        try {
+            return wrappedElement.asBoolean();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -585,8 +580,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return String value of the current primitive
      */
     public String asString() {
-        primitiveCheck();
-        return json.getAsString();
+        try {
+            return wrappedElement.asString();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -610,8 +608,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return double value of the current primitive
      */
     public double asDouble() {
-        primitiveCheck();
-        return json.getAsDouble();
+        try {
+            return wrappedElement.asDouble();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -635,8 +636,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return float value of the current primitive
      */
     public float asFloat() {
-        primitiveCheck();
-        return json.getAsFloat();
+        try {
+            return wrappedElement.asFloat();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -660,8 +664,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return short value of the current primitive
      */
     public short asShort() {
-        primitiveCheck();
-        return json.getAsShort();
+        try {
+            return wrappedElement.asShort();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -685,8 +692,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return int value of the current primitive
      */
     public int asInt() {
-        primitiveCheck();
-        return json.getAsInt();
+        try {
+            return wrappedElement.asInt();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -710,8 +720,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return byte value of the current primitive
      */
     public byte asByte() {
-        primitiveCheck();
-        return json.getAsByte();
+        try {
+            return wrappedElement.asByte();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -735,8 +748,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return BigDecimal value of the current primitive
      */
     public BigDecimal asBigDecimal() {
-        primitiveCheck();
-        return json.getAsBigDecimal();
+        try {
+            return wrappedElement.asBigDecimal();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -760,8 +776,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return BigInteger value of the current primitive
      */
     public BigInteger asBigInteger() {
-        primitiveCheck();
-        return json.getAsBigInteger();
+        try {
+            return wrappedElement.asBigInteger();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
+        }
     }
 
     /**
@@ -798,11 +817,11 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return element with property name
      */
     public JsonEntity get(String property) {
-        if (!isObject()) {
-            throw new JsonEntityException(this, null, "is not an object, so the property could not be fetched");
+        try {
+            return wrap(property, wrappedElement.get(property));
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
         }
-        JsonElement element = ((JsonObject) json).get(property);
-        return element != null ? wrap(property, element) : null;
     }
     
     /**
@@ -813,7 +832,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      */
     public JsonEntity getSafely(String property) {
         JsonEntity entity = get(property);
-        return entity != null ? entity : new JsonEntity(JsonNull.INSTANCE);
+        return entity != null ? entity : new JsonEntity(WrappedElement.NULL);
     }
 
     /**
@@ -821,7 +840,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return true if the current element is an array
      */
     public boolean isArray() {
-        return json.isJsonArray();
+        return wrappedElement.isArray();
     }
 
     /**
@@ -829,7 +848,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return true if the current element is a primitive
      */
     public boolean isPrimitive() {
-        return json.isJsonPrimitive();
+        return wrappedElement.isPrimitive();
     }
 
     /**
@@ -837,7 +856,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return true if the current element is an object
      */
     public boolean isObject() {
-        return json.isJsonObject();
+        return wrappedElement.isObject();
     }
 
     /**
@@ -845,29 +864,8 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return true if the current element is empty
      */
     public boolean isNull() {
-        return json.isJsonNull();
+        return wrappedElement.isNull();
     }
-
-    /**
-     * Checks whether the array has rows
-     * @return true if the underlying Gson element is a JsonArray and has rows
-     */
-    public boolean isNotEmpty() {
-        return isArray() && arraySize() > 0;
-    }
-
-//    /**
-//     * ...
-//     * @param index
-//     * @return
-//     */
-//    public boolean isNotBlank(JsonEntity value) {
-//        boolean result = false;
-//        if (isNotNull()) {
-//            result = StringUtils.isNotBlank(value.asString());
-//        }
-//        return result;
-//    }
 
     private String property(int index) {
         return "["+index+"]";
@@ -887,7 +885,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return wrapped Gson JsonElement
      */
     public JsonElement raw() {
-        return json;
+        return wrappedElement.raw();
     }
 
     /**
@@ -900,25 +898,28 @@ public class JsonEntity implements Iterable<JsonEntity> {
         return propertyName == null ? property(propertyIndex) : propertyName;
     }
 
-    private JsonEntity linkToObject(String property, JsonElement jsonEntity) {
-        ((JsonObject)json).add(property, jsonEntity);
+    private JsonEntity linkToObject(String property, WrappedElement jsonEntity) {
+        wrappedElement.linkToObject(property, jsonEntity);
         return wrap(property, jsonEntity);
     }
 
-    private JsonEntity linkToArray(int index, JsonElement jsonEntity) {
-        ((JsonArray)json).add(jsonEntity);
+    private JsonEntity linkToArray(int index, WrappedElement jsonEntity) {
+        wrappedElement.linkToArray(index, jsonEntity);
         return wrap(index, jsonEntity);
     }
 
-    private JsonEntity wrap(String property, JsonElement jsonElement) {
+    private JsonEntity wrap(String property, WrappedElement jsonElement) {
         return wrap(property, -1, jsonElement);
     }
 
-    private JsonEntity wrap(int index, JsonElement jsonElement) {
+    private JsonEntity wrap(int index, WrappedElement jsonElement) {
         return wrap(null, index, jsonElement);
     }
 
-    private JsonEntity wrap(String propertyName, int propertyIndex, JsonElement jsonElement) {
+    private JsonEntity wrap(String propertyName, int propertyIndex, WrappedElement jsonElement) {
+        if (jsonElement == null) {
+            return null;
+        }
         return new JsonEntity(this, propertyName, propertyIndex, jsonElement);
     }
 
@@ -927,7 +928,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return an empty object
      */
     public static JsonEntity emptyObject() {
-        return new JsonEntity(new JsonObject());
+        return new JsonEntity(WrappedElement.createObject());
     }
 
     /**
@@ -935,7 +936,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return an empty array
      */
     public static JsonEntity emptyArray() {
-        return new JsonEntity(new JsonArray());
+        return new JsonEntity(WrappedElement.createArray());
     }
 
     /**
@@ -945,20 +946,18 @@ public class JsonEntity implements Iterable<JsonEntity> {
      */
     @Override
     public Iterator<JsonEntity> iterator() {
-    	if (json == JsonNull.INSTANCE) {
-    		return Collections.<JsonEntity> emptySet().iterator();
-    	}
-        if (!isArray()) {
-            throw new JsonEntityException(this, null, "is not an array, therefore cannot be iterated over");
+        try {
+            List<WrappedElement> wrappedElements = wrappedElement.list();
+            List<JsonEntity> list = new ArrayList<JsonEntity>(wrappedElements.size());
+            int index = 0;
+            for (WrappedElement wrappedElement : wrappedElements) {
+                list.add(wrap(index, wrappedElement));
+                index++;
+            }
+            return list.iterator();
+        } catch (WrappedElementException err) {
+            throw new JsonEntityException(this, null, err.getMessage());
         }
-        JsonArray array = ((JsonArray)json);
-        List<JsonEntity> wrappedElements = new ArrayList<JsonEntity>(array.size());
-        int index = 0;
-        for (Object anArray : array) {
-            wrappedElements.add(wrap(index, (JsonElement) anArray));
-            index++;
-        }
-        return wrappedElements.iterator();
     }
 
     /**
@@ -966,7 +965,7 @@ public class JsonEntity implements Iterable<JsonEntity> {
      * @return copy of the current node, un-coupled from its parent
      */
     public JsonEntity detachedCopy() {
-        return new JsonEntity(json.toString());
+        return new JsonEntity(wrappedElement.raw().toString());
     }
 
     /**
@@ -975,12 +974,12 @@ public class JsonEntity implements Iterable<JsonEntity> {
      */
     @Override
     public String toString() {
-        return raw().toString();
+        return wrappedElement.raw().toString();
     }
 
     @Override
     public int hashCode() {
-        return raw().hashCode();
+        return wrappedElement.raw().hashCode();
     }
 
     @Override

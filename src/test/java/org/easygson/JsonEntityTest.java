@@ -129,9 +129,9 @@ public class JsonEntityTest {
         assertFalse(unknown.iterator().hasNext());
     }
     
-    @Test(expected = JsonEntityException.class)
+    @Test
     public void iterableNonArray() {
-        emptyObject().iterator();
+        assertFalse(emptyObject().iterator().hasNext());
     }
 
     @Test(expected = JsonEntityException.class)

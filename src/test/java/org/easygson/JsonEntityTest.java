@@ -385,4 +385,44 @@ public class JsonEntityTest {
         assertEquals(gson.hashCode(), easyGson.hashCode());
     }
 
+    @Test
+    public void removeMe() {
+        JsonEntity entity = new JsonEntity("{ a : { b : { c : 3 } } }");
+        assertEquals(entity, entity.get("a").get("b").get("c").removeMe().removeMe().removeMe());
+        assertNull(entity.removeMe());
+    }
+
+    @Test
+    public void getIndexAsArray() {
+        JsonEntity entity = new JsonEntity("[ 1 ]");
+        JsonEntity array = entity.convertToArray(0);
+        assertTrue("JsonEntity must be an array", array.isArray());
+        assertEquals(1, array.get(0).asInt());
+    }
+
+    @Test
+    public void getObjectAsArray() {
+        JsonEntity entity = new JsonEntity("{ a : 1 }");
+        JsonEntity array = entity.convertToArray("a");
+        assertTrue("JsonEntity must be an array", array.isArray());
+        assertEquals(1, array.get(0).asInt());
+    }
+
+    @Test
+    public void getObjectThatIsAlreadyAnArray() {
+        JsonEntity entity = new JsonEntity("{ a : [ 1 ] }");
+        JsonEntity array = entity.convertToArray("a");
+        assertTrue("JsonEntity must be an array", array.isArray());
+        assertEquals(1, array.get(0).asInt());
+    }
+
+    @Test
+    public void convertToArrayInNestedJson() {
+        JsonEntity entity = new JsonEntity("{ a : { b : 1 } }");
+        JsonEntity array = entity.get("a").convertToArray("b");
+        assertTrue("JsonEntity must be an array", array.isArray());
+        assertEquals(1, array.get(0).asInt());
+        assertEquals(1, entity.get("a").get("b").get(0).asInt());
+    }
+
 }

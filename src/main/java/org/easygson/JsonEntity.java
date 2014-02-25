@@ -108,6 +108,14 @@ public class JsonEntity implements Iterable<JsonEntity> {
         return create(index, WrappedElement.createArray());
     }
 
+    private JsonEntity createArray(JsonEntity parentData) {
+        if (parentData.isIndexBased()) {
+            return createArray(parentData.propertyIndex);
+        } else {
+            return createArray(parentData.propertyName);
+        }
+    }
+
     /**
      * Returns the array in an object with the designated name. If nothing exists under that name, a new array
      * will be created. The ensure-operation never overwrites values, and is therefore a useful method for usage
@@ -445,6 +453,22 @@ public class JsonEntity implements Iterable<JsonEntity> {
         return this;
     }
 
+    /**
+     * Orders the element to remove itself from the parent.
+     * @return the element that is removed
+     */
+    public JsonEntity removeMe() {
+        if (parent == null) {
+            return null;
+        }
+        if (isIndexBased()) {
+            parent.remove(propertyIndex);
+        } else {
+            parent.remove(propertyName);
+        }
+        return parent;
+    }
+
     private boolean fluentPlayer() {
         return wrappedElement.fluentPlayer();
     }
@@ -501,13 +525,17 @@ public class JsonEntity implements Iterable<JsonEntity> {
         // entire JsonArray will have to be replaced. Consequence is that the parent nodes will have to be
         // notified of the new instance.
         if (parent != null) {
-            if (propertyIndex > -1) { // Update the parent array, possibly recursively
+            if (isIndexBased()) { // Update the parent array, possibly recursively
                 parent.rebuildArray(propertyIndex, wrappedElement);
             } else { // Update the parent object
                 parent.create(propertyName, wrappedElement);
             }
         }
         return replaceElement == null ? this : wrap(replaceIndex, replaceElement);
+    }
+
+    private boolean isIndexBased() {
+        return propertyIndex > -1;
     }
 
     /**
@@ -788,6 +816,36 @@ public class JsonEntity implements Iterable<JsonEntity> {
      */
     public BigInteger asBigInteger(String property) {
         return get(property).asBigInteger();
+    }
+
+    /**
+     * Makes sures to convert the value to an array, regardless of whether it already is an array, or
+     * an object
+     * @param index index of the element within an array
+     * @return element with index, as an array
+     */
+    public JsonEntity convertToArray(int index) {
+        return convertToArray(get(index));
+    }
+
+    /**
+     * Makes sure to convert the value to an array, regardless of whether it already is an array, or
+     * an object
+     * @param property property name of the element to return
+     * @return element with property name
+     */
+    public JsonEntity convertToArray(String property) {
+        return convertToArray(get(property));
+    }
+
+    private JsonEntity convertToArray(JsonEntity jsonEntity) {
+        if (jsonEntity.isArray()) {
+            return jsonEntity;
+        }
+        jsonEntity.removeMe();
+        JsonEntity array = this.createArray(jsonEntity);
+        array.create(jsonEntity);
+        return array;
     }
 
     /**

@@ -7,16 +7,28 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.assertTrue;
 import static org.easygson.JsonEntity.emptyArray;
 import static org.easygson.JsonEntity.emptyObject;
 
 public class JsonEntityTest {
 
     @Test
-    public void parseObject() {
+    public void parseObjectString() {
         JsonEntity json = new JsonEntity("{x:\"hello world\"}");
         assertEquals("hello world", json.asString("x"));
+    }
+
+    @Test
+    public void parseObjectFromInstance() {
+        JsonEntity json = new JsonEntity(new Object());
+        assertEquals("{}", json.toString());
     }
 
     @Test
@@ -48,7 +60,7 @@ public class JsonEntityTest {
         assertEquals("28", object.get("coordinates").asString("x"));
         assertEquals("14", object.get("coordinates").asString("y"));
     }
-    
+
     @Test
     public void nullSafeAccess() {
         JsonEntity json = emptyObject();
@@ -118,17 +130,17 @@ public class JsonEntityTest {
                 .create("el3");
         int count = 1;
         for (JsonEntity arrayElement : array) {
-            assertEquals("el"+count, arrayElement.asString());
+            assertEquals("el" + count, arrayElement.asString());
             count++;
         }
     }
-    
+
     @Test
     public void iterableNull() {
         JsonEntity unknown = emptyObject().getSafely("unknown");
         assertFalse(unknown.iterator().hasNext());
     }
-    
+
     @Test
     public void iterableNonArray() {
         assertFalse(emptyObject().iterator().hasNext());
@@ -326,13 +338,13 @@ public class JsonEntityTest {
     @Test
     public void changeObject() {
         JsonEntity root = emptyObject()
-            .createArray("array")
+                .createArray("array")
                 .createObject()
-                    .create("x", 13)
-                    .parent()
+                .create("x", 13)
+                .parent()
                 .parent();
         JsonEntity object = emptyObject()
-            .create("x", 29);
+                .create("x", 29);
         root.get("array").create(0, object);
         assertEquals(29, root.get("array").get(0).asInt("x"));
     }
